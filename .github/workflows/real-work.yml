@@ -1,0 +1,23 @@
+name : Real Work
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v4
+      
+      - name: Look at what we have
+        run: |
+          echo "----Current Directory----"
+          pwd
+          echo "----Files In Repo----"
+          ls -la
+          echo "----Git Log-----"
+          git log --oneline -5
