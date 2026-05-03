@@ -1,0 +1,21 @@
+name: Exit Code Demo
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step that suceeds
+        run: echo "I exit with 0. All good."
+
+      - name: Step that fails
+        run: | 
+          echo "About to fail..."
+          exit 1
+
+      - name: This step will be skipped
+        run: echo "You will never see this."
+        
