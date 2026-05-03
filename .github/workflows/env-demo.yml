@@ -1,0 +1,40 @@
+name : Env And Secrets Demo
+
+on:
+  push:
+    branches: [main]
+
+# Workflow level --- available in all jobs
+env:
+  APP_ENV: production
+  MAX_RETRIES: "3"
+
+jobs:
+  show-env:
+    runs-on: ubuntu-latest
+  
+    # Job level --- only available in this job
+    env:
+      JOB_NAME: show-env 
+
+    steps:
+      - name: Show environment variables
+        # Step level --- only available in this step
+        env:
+          STEP_VAR: "I am step-scoped" 
+
+        run: |
+          echo "App env: $APP_ENV"
+          echo "Max retries: $MAX_RETRIES"
+          echo "Job name: $JOB_NAME"
+          echo "Step var: $STEP_VAR"
+          echo "Built-in: branch is $GITHUB_REF_NAME"
+          echo "Built-in: commit is $GITHUB_SHA"
+
+      - name: Use a secret
+        env:
+          MY_API_KEY: ${{ Secrets.MY_API_KEY }}
+        run : |
+          echo "Key Length: ${#MY_API_KEY}"
+          echo "Key starts with: ${MY_API_KEY:0:3}"
+    
