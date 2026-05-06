@@ -1,0 +1,20 @@
+# Virtual environment (uv creates this)
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Testing cache
+.pytest_cache/
+.coverage
+htmlcov/
+reports/
+
+# Environment variables
+.env
+.env.*
+
+# uv cache
+.uv/
