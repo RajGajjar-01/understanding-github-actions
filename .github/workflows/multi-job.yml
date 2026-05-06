@@ -1,0 +1,61 @@
+name: Multi-Job
+  
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-setup
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Lint with ruff
+        run: uv run ruff check .
+    
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-setup
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run tests and save report
+        run: uv run pytest tests/ -v --json-report --json-report-file=report.json
+
+      - name: Upload test report
+        if: always()     # upload even if tests failed
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ github.sha }}
+          path: python-setup/report.json
+          retention-days: 14
