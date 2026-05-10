@@ -1,0 +1,80 @@
+name: Release & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  APP_NAME: my-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Extract version from tag
+        id: tag
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          echo "Building version ${{ steps.tag.outputs.version }}"
+          echo "docker build -t ${{ env.APP_NAME }}:${{ steps.tag.outputs.version }} ."
+
+      - name: Run tests
+        run: echo "Running tests..."
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ steps.tag.outputs.version }}
+          path: |
+            dist/
+            package.json
+          retention-days: 30
+
+  deploy-staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ needs.build.outputs.version }}
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying version ${{ needs.build.outputs.version }} to STAGING"
+          echo "Server: staging.example.com"
+
+  deploy-production:
+    needs: [build, deploy-staging]
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ needs.build.outputs.version }}
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying version ${{ needs.build.outputs.version }} to PRODUCTION"
+          echo "Server: prod.example.com"
+
+      - name: Notify success
+        run: |
+          echo "✅ Deployment complete!"
+          echo "Version: ${{ needs.build.outputs.version }}"
+          echo "Deployed by: ${{ github.actor }}"
